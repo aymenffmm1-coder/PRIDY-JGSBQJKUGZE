@@ -270,10 +270,17 @@ def get_mod_safety():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+import os
+
 if __name__ == '__main__':
+    # الحصول على المنفذ من Railway، وإذا لم يوجد استخدم 5000 كافتراضي
+    port = int(os.environ.get("PORT", 5000))
+    
     print("\n" + "="*50)
     print("🔒 Nitro Proxy - Auth Server")
     print("="*50)
-    print("✅ Server running on http://127.0.0.1:5000")
+    print(f"✅ Server running on http://0.0.0.0:{port}")
     print("="*50 + "\n")
-    app.run(host='127.0.0.1', port=5000)
+    
+    # الاستماع على 0.0.0.0 يسمح للطلبات الخارجية بالوصول للسيرفر
+    app.run(host='0.0.0.0', port=port)
