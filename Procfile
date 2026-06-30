@@ -1,2 +1,3 @@
-web: python3 "Main/@khatri_ashok04_system/auth_server.py"
-proxy: python3 "Main/proxy.py"
+web: python3 auth_server.py
+bot: python3 bots.py
+proxy: python3 proxy.py
