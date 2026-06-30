@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nitro Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #070b17;
+      --bg-soft: #0f172a;
+      --card: rgba(255, 255, 255, 0.07);
+      --card-2: rgba(255, 255, 255, 0.05);
+      --line: rgba(255, 255, 255, 0.15);
+      --txt: #f8fafc;
+      --muted: #b9c3d6;
+      --brand: #38bdf8;
+      --brand-2: #6366f1;
+      --ok: #22c55e;
+      --err: #ef4444;
+      --warn: #f59e0b;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--txt);
+      background:
+        radial-gradient(1100px 600px at 95% -20%, #2563eb55, transparent),
+        radial-gradient(1000px 700px at -10% 120%, #06b6d455, transparent),
+        radial-gradient(600px 300px at 40% 10%, #6366f133, transparent),
+        linear-gradient(140deg, #050913, var(--bg), var(--bg-soft));
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.05;
+      background-image: radial-gradient(#fff 1px, transparent 1px);
+      background-size: 4px 4px;
+    }
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 18px 14px 28px;
+    }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      background: linear-gradient(120deg, rgba(56,189,248,0.18), rgba(99,102,241,0.1));
+      box-shadow: 0 20px 45px rgba(0,0,0,0.32);
+      padding: 18px 16px;
+      margin-bottom: 12px;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      left: -70px;
+      top: -120px;
+      background: radial-gradient(circle, #38bdf86b, transparent 70%);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid #7dd3fc66;
+      background: #0ea5e92b;
+      color: #dff5ff;
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .title {
+      margin: 10px 0 6px;
+      font-size: 30px;
+      letter-spacing: 0.2px;
+      font-weight: 800;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+    .col-8 { grid-column: span 12; }
+    .col-4 { grid-column: span 12; }
+    @media (min-width: 780px) {
+      .col-8 { grid-column: span 8; }
+      .col-4 { grid-column: span 4; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.26);
+    }
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #e2ecff;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .row { display: grid; gap: 10px; }
+    .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      display: block;
+    }
+    .input-wrap { position: relative; }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 13px;
+      background: rgba(255,255,255,0.05);
+      color: var(--txt);
+      outline: none;
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+    input:focus {
+      border-color: #7dd3fc;
+      box-shadow: 0 0 0 3px #38bdf830;
+      background: rgba(255,255,255,0.08);
+    }
+    .mono { font-family: Consolas, "Courier New", monospace; letter-spacing: 0.5px; }
+    .small {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9fb0cb;
+    }
+    .btns {
+      display: grid;
+      gap: 9px;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 12px;
+    }
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      color: #fff;
+      transition: 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      user-select: none;
+    }
+    .btn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--brand), var(--brand-2));
+      box-shadow: 0 10px 22px #2563eb3d;
+    }
+    .btn-success {
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      box-shadow: 0 10px 22px #22c55e33;
+    }
+    .btn-ghost {
+      border-color: var(--line);
+      background: rgba(255,255,255,0.03);
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.03); }
+    .state {
+      margin-top: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.75;
+      min-height: 64px;
+      white-space: pre-wrap;
+      background: rgba(2,6,23,0.35);
+    }
+    .state.ok { border-color: #22c55e6b; color: #86efac; background: #052e162e; }
+    .state.err { border-color: #ef44446b; color: #fca5a5; background: #450a0a2e; }
+    .state.warn { border-color: #f59e0b6b; color: #fcd34d; background: #451a032e; }
+    .keys {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .k-item {
+      background: var(--card-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px;
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .k-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .k-label { color: var(--muted); }
+    .k-val { color: #e5edff; font-weight: 700; text-align: left; direction: ltr; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      font-size: 11px;
+      color: #dbeafe;
+    }
+    .side-card {
+      display: grid;
+      gap: 10px;
+    }
+    .meta {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+      color: #c7d2fe;
+      line-height: 1.7;
+      word-break: break-all;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid #ffffff66;
+      border-top-color: #fff;
+      animation: spin 0.9s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-inline-start: 4px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <div class="wrap">
+    <section class="hero">
+      <span class="badge">⚡ Nitro Premium Mini App</span>
+      <h1 class="title">Faster Activation • Premium UI • Better Control</h1>
+      <p class="subtitle">
+        Manage activation and subscription status in one polished screen.
+        Activation runs on your current IP with automatic Device Token binding.
+      </p>
+    </section>
+
+    <section class="grid">
+      <div class="col-8 card">
+        <h3 class="section-title">🔐 Activation & Status</h3>
+
+        <div class="row">
+          <div>
+            <label class="label">Public IPv4</label>
+            <div class="input-wrap">
+              <input id="ip" inputmode="numeric" placeholder="Example: 1.2.3.4" />
+            </div>
+          </div>
+
+          <div>
+            <label class="label">License Key</label>
+            <div class="input-wrap">
+              <input id="key" class="mono" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" />
+            </div>
+            <div class="small">Enter your key, then press Activate.</div>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button id="activateBtn" class="btn btn-primary">✅ Activate Key</button>
+          <button id="statusBtn" class="btn btn-success">📊 Check Status</button>
+        </div>
+
+        <div style="margin-top:8px;">
+          <button id="tutorialBtn" class="btn btn-ghost" style="width:100%;">📘 Proxy Cheat Tutorial</button>
+        </div>
+
+        <div style="margin-top:8px;">
+          <button id="detectIpBtn" class="btn btn-ghost" style="width:100%;">🌍 Detect My Public IP</button>
+        </div>
+
+        <div style="margin-top:8px;">
+          <button id="formatBtn" class="btn btn-ghost" style="width:100%;">🧹 Auto-format Key</button>
+        </div>
+
+        <div id="state" class="state warn">Ready. Activate a key or check current status.</div>
+        <div id="keys" class="keys"></div>
+      </div>
+
+      <div class="col-4 side-card">
+        <div class="card">
+          <h3 class="section-title">🧬 Device Info</h3>
+          <div class="meta"><b>Device Token</b><br><span id="deviceToken" class="mono">-</span></div>
+          <div class="meta"><b>Session User</b><br><span id="sessionUser" class="mono">-</span></div>
+          <p class="hint">
+            A unique Device Token is generated once and saved automatically to keep activation stable when network changes.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title">💡 Notes</h3>
+          <div class="hint">
+            - If you switch router/network, use the same key from the same Telegram account.<br>
+            - If an error appears, run “Check Status” first.<br>
+            - Make sure device date and time are correct.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const tgApp = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+    if (tgApp) {
+      tgApp.ready();
+      tgApp.expand();
+      tgApp.setHeaderColor("#0f172a");
+      tgApp.setBackgroundColor("#070b17");
+    }
+
+    const $ = (id) => document.getElementById(id);
+    const ui = {
+      ip: $("ip"),
+      key: $("key"),
+      state: $("state"),
+      keys: $("keys"),
+      activateBtn: $("activateBtn"),
+      statusBtn: $("statusBtn"),
+      tutorialBtn: $("tutorialBtn"),
+      detectIpBtn: $("detectIpBtn"),
+      formatBtn: $("formatBtn"),
+      deviceToken: $("deviceToken"),
+      sessionUser: $("sessionUser"),
+    };
+
+    const appState = {
+      loading: false,
+      token: null,
+      telegramId: "",
+      initData: "",
+    };
+
+    function generateToken() {
+      if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+      return "dev-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+    }
+
+    function setupIdentity() {
+      const saved = localStorage.getItem("nitro_device_token");
+      appState.token = saved || generateToken();
+      localStorage.setItem("nitro_device_token", appState.token);
+
+      const tgUser = tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user ? tgApp.initDataUnsafe.user : null;
+      appState.telegramId = tgUser ? String(tgUser.id) : "";
+      appState.initData = tgApp && tgApp.initData ? String(tgApp.initData) : "";
+
+      ui.deviceToken.textContent = appState.token;
+      ui.sessionUser.textContent = appState.telegramId || "Unavailable (enter Telegram ID manually)";
+    }
+
+    function normalizeKey(v) {
+      const clean = String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (!clean) return "";
+      const parts = clean.match(/.{1,4}/g) || [];
+      return parts.slice(0, 3).join("-");
+    }
+
+    function mapError(err) {
+      const m = {
+        missing_fields: "Missing data. Enter IP and key.",
+        bad_format: "Invalid key format.",
+        not_found: "Key not found.",
+        banned: "This key is disabled.",
+        already_used: "This key is already used by another user.",
+        expired: "This key has expired.",
+        ip_in_use: "This IP is already linked to another active key.",
+        missing_telegram_id: "Telegram session is required.",
+        missing_ip: "IP is required.",
+        missing_device_token: "Device token is required.",
+        device_mismatch: "This key is already linked to another device.",
+        invalid_telegram_init_data: "Invalid Telegram session. Open from bot button again.",
+        telegram_verification_failed: "Telegram verification failed.",
+        frozen: "This key is frozen. Please try again later.",
+      };
+      return m[err] || ("Error: " + err);
+    }
+
+    function setLoading(on, sourceBtn) {
+      appState.loading = on;
+      ui.activateBtn.disabled = on;
+      ui.statusBtn.disabled = on;
+      if (!sourceBtn) return;
+      if (on) {
+        sourceBtn.dataset.original = sourceBtn.textContent;
+        sourceBtn.innerHTML = '<span class="spinner"></span> Processing...';
+      } else if (sourceBtn.dataset.original) {
+        sourceBtn.textContent = sourceBtn.dataset.original;
+      }
+    }
+
+    function setState(message, kind) {
+      ui.state.className = "state " + (kind || "warn");
+      ui.state.textContent = message;
+    }
+
+    function fmtDate(ts) {
+      if (!ts) return "-";
+      const d = new Date(Number(ts) * 1000);
+      return d.toLocaleString();
+    }
+
+    function isIPv4(ip) {
+      return /^(\d{1,3}\.){3}\d{1,3}$/.test(String(ip || "").trim());
+    }
+
+    async function postJson(url, body) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    function renderKeys(list) {
+      if (!Array.isArray(list) || list.length === 0) {
+        ui.keys.innerHTML = "";
+        return;
+      }
+      ui.keys.innerHTML = list.map((k, i) => `
+        <div class="k-item">
+          <div class="k-row"><span class="k-label">Key</span><span class="k-val mono">${k.key || "-"}</span></div>
+          <div class="k-row"><span class="k-label">Current IP</span><span class="k-val mono">${k.ip || "-"}</span></div>
+          <div class="k-row"><span class="k-label">Expires</span><span class="k-val">${fmtDate(k.expires_at)}</span></div>
+          <div class="k-row">
+            <span class="k-label">Duration</span>
+            <span class="pill">${Number(k.duration_days || 0)} day(s)</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function activate() {
+      ui.keys.innerHTML = "";
+      const ip = ui.ip.value.trim();
+      const key = normalizeKey(ui.key.value.trim());
+      ui.key.value = key;
+
+      if (!ip || !key) {
+        setState("Enter IP and key first.", "warn");
+        return;
+      }
+      if (!isIPv4(ip)) {
+        setState("Invalid IPv4 format. Example: 1.2.3.4", "warn");
+        return;
+      }
+
+      setLoading(true, ui.activateBtn);
+      setState("Activating key...", "warn");
+
+      try {
+        const res = await postJson("/miniapp/activate", {
+          telegram_id: appState.telegramId,
+          init_data: appState.initData,
+          ip,
+          key,
+          device_token: appState.token,
+        });
+
+        if (!res.ok || !res.data.ok) {
+          setState("❌ " + mapError(res.data.error || "unknown_error"), "err");
+          return;
+        }
+
+        setState(
+          "✅ Activation successful\n" +
+          "IP: " + (res.data.ip || "-") + "\n" +
+          "Expires: " + fmtDate(res.data.expires_at),
+          "ok"
+        );
+
+        if (tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.notificationOccurred("success");
+      } catch (e) {
+        setState("❌ Network error: " + e.message, "err");
+      } finally {
+        setLoading(false, ui.activateBtn);
+      }
+    }
+
+    async function checkStatus() {
+      ui.keys.innerHTML = "";
+      const ip = ui.ip.value.trim();
+      if (!ip) {
+        setState("Enter IP first.", "warn");
+        return;
+      }
+      if (!isIPv4(ip)) {
+        setState("Invalid IPv4 format. Example: 1.2.3.4", "warn");
+        return;
+      }
+
+      setLoading(true, ui.statusBtn);
+      setState("Loading subscription status...", "warn");
+
+      try {
+        const res = await postJson("/miniapp/status", {
+          ip,
+          device_token: appState.token,
+          telegram_id: appState.telegramId,
+          init_data: appState.initData,
+        });
+
+        if (!res.ok || !res.data.ok) {
+          setState("❌ " + mapError(res.data.error || "unknown_error"), "err");
+          return;
+        }
+
+        const list = res.data.active || [];
+        const frozen = !!res.data.frozen;
+        if (!list.length) {
+          setState(frozen ? "System is frozen (maintenance mode). Your key time is preserved." : "No active keys for this account right now.", "warn");
+          return;
+        }
+
+        setState(
+          frozen
+            ? "❄️ System is frozen (maintenance mode).\nYour key is temporarily paused and time is preserved."
+            : "✅ Found " + list.length + " active key(s).",
+          frozen ? "warn" : "ok"
+        );
+        renderKeys(list);
+
+        if (tgApp && tgApp.HapticFeedback) tgApp.HapticFeedback.impactOccurred("light");
+      } catch (e) {
+        setState("❌ Network error: " + e.message, "err");
+      } finally {
+        setLoading(false, ui.statusBtn);
+      }
+    }
+
+    ui.formatBtn.addEventListener("click", () => {
+      ui.key.value = normalizeKey(ui.key.value);
+      setState("✅ Key formatted.", "ok");
+    });
+    ui.detectIpBtn.addEventListener("click", async () => {
+      try {
+        setState("Detecting public IP...", "warn");
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        const ip = String((data || {}).ip || "").trim();
+        if (!isIPv4(ip)) {
+          setState("Could not detect a valid IPv4.", "err");
+          return;
+        }
+        ui.ip.value = ip;
+        setState("✅ Public IP detected: " + ip, "ok");
+      } catch (e) {
+        setState("❌ Failed to detect IP: " + e.message, "err");
+      }
+    });
+
+    ui.activateBtn.addEventListener("click", activate);
+    ui.statusBtn.addEventListener("click", checkStatus);
+    ui.tutorialBtn.addEventListener("click", () => {
+      window.location.href = "/miniapp/tutorial";
+    });
+    ui.key.addEventListener("input", () => {
+      if (ui.key.value.length > 14) ui.key.value = normalizeKey(ui.key.value);
+    });
+
+    setupIdentity();
+  </script>
+</body>
+</html>
